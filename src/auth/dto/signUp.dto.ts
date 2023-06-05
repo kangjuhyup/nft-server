@@ -6,6 +6,6 @@ export class SignUpDto {
     address : string;
 
     @IsString()
-    encrypted_message : string;
+    signature : string;
 
 }
