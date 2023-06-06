@@ -1,6 +1,9 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "jsx": "react",
+    "esModuleInterop": true,
+    "allowJs": true,
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
@@ -20,7 +23,9 @@
     "paths" : {
       "@root/*" : ["./src/*"],
       "@auth/*" : ["./src/auth/*"],
-      "@database/*" : ["./src/database/*"],
+      "@database/*" : ["./src/database/*"]
     }
-  }
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
 }

@@ -4,14 +4,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
+import { AuthJwtModule } from './middleware/jwt/jwt.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal : true,
     }),
+    DatabaseModule,
+    AuthJwtModule,
     AuthModule, 
-    DatabaseModule
   ],
   controllers: [AppController],
   providers: [AppService],

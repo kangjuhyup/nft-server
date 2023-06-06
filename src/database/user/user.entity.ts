@@ -1,7 +1,7 @@
 import { Column, Entity, PrimaryColumn } from "typeorm";
 
 @Entity()
-export class User {
+export class UserInfo {
     @PrimaryColumn()
     uuid : string;
 
@@ -11,18 +11,18 @@ export class User {
     @Column()
     jwt_access_token : string;
 
-    @Column()
+    @Column({nullable:true})
     jwt_refresh_token : string;
 
     constructor(
         _uuid : string,
         _address : string,
         _jwt_access_token : string,
-        _jwt_refresh_token : string,
+        _jwt_refresh_token? : string,
     ) {
         this.address = _address;
         this.uuid = _uuid;
         this.jwt_access_token = _jwt_access_token;
-        this.jwt_refresh_token = _jwt_refresh_token;
-    }
-}
+        if(_jwt_refresh_token) this.jwt_refresh_token = _jwt_refresh_token;
+    } 
+} 
