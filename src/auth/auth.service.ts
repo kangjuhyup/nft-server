@@ -7,6 +7,7 @@ import { getPolicyDto } from '@auth/dto/getPolicy.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
 import { JwtService } from '@nestjs/jwt';
+import { ExistedUserException } from '@root/middleware/exception/custom/existedUser.exception';
 
 
 @Injectable()
@@ -21,13 +22,16 @@ export class AuthService {
 
     async getPolicy(dto:getPolicyDto) {
         const {address} = dto;
-        if(await this._isExisted(address)) throw new Error('already singup');
-        return this.POLICY;
+        if(await this._isExisted(address)) throw new ExistedUserException();
+        return {
+            success : true, 
+            policy : this.POLICY 
+        };
     }
 
     async signUp(dto:SignUpDto) {
         const {address, signature} = dto;
-        if(await this._isExisted(address)){throw new Error('already singup')}
+        if(await this._isExisted(address)) throw new ExistedUserException();
         if(!this._checkSignature(address,signature)){throw new Error('invaild signature')};
         const uuid = uuidv4();
         const jwt_access_token = this.jwtService.sign(dto);
@@ -36,12 +40,14 @@ export class AuthService {
             address,
             jwt_access_token
         )
-        return await this.userRepository.upsert(user);
+        return {
+            success : true,
+            user : await this.userRepository.upsert(user)
+        }
     }
 
     async _isExisted(address:string) {
         const check = await this.userRepository.findOne(address);
-        console.log(check);
         if(check) return true;
         return false;
     }

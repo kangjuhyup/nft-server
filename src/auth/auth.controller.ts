@@ -13,7 +13,6 @@ export class AuthController {
     async getPolicy(
         @Query() dto: getPolicyDto
     ) {
-        // return 'ok'
         return this.authService.getPolicy(dto);
     }
 
@@ -21,7 +20,6 @@ export class AuthController {
     async signeUp(
         @Body() dto:SignUpDto
     ) {
-        console.log('controller dto :',dto);
         return this.authService.signUp(dto);
     }
 
