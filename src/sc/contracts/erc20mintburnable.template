@@ -5,7 +5,7 @@ import "./ERC20.sol";
 import "./ERC20Burnable.sol";
 
 contract ERC20MintBurnableTemplate is ERC20, ERC20Burnable {
-    constructor() ERC20("{{name}}", "{{symbol}}", {{totalSupply}}) {}
+    constructor() ERC20("{{name}}", "{{symbol}}", {{totalSupply}},address({{owner}})) {}
 
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);

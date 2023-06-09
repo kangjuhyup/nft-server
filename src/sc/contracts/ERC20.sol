@@ -53,10 +53,11 @@ contract ERC20 is  IERC20, IERC20Metadata, Ownable {
      * All two of these values are immutable: they can only be set once during
      * construction.
      */
-    constructor(string memory name_, string memory symbol_, uint256 totalSupply_) {
+    constructor(string memory name_, string memory symbol_, uint256 totalSupply_, address owner) {
         _name = name_;
         _symbol = symbol_;
         _totalSupply = totalSupply_;
+        _balances[owner] = totalSupply_;
     }
 
     /**

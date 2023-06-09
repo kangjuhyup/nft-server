@@ -4,7 +4,7 @@ pragma solidity ^0.8.9;
 import "./ERC20.sol";
 
 contract ERC20MintableTemplate is ERC20 {
-    constructor() ERC20("{{name}}", "{{symbol}}", {{totalSupply}}) {}
+    constructor() ERC20("{{name}}", "{{symbol}}", {{totalSupply}},address({{owner}})) {}
 
     function mint(address to, uint256 amount) public onlyOwner {
         _mint(to, amount);

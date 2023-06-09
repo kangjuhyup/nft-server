@@ -8,11 +8,12 @@ import path from 'path';
 @Injectable()
 export class ScService {
   async getErc20Template(dto: Erc20Dto) {
-    const { name, symbol, totalSupply, mintable, burnable } = dto;
+    const { name, symbol, totalSupply, owner, mintable, burnable } = dto;
     const data = {
       name: name,
       symbol: symbol,
       totalSupply: totalSupply,
+      owner : owner
     };
     let templatePath;
     let sol_name;
@@ -67,6 +68,7 @@ export class ScService {
     });
 
     const compiledOutput = JSON.parse(compiled);
+    console.log(compiledOutput)
     const contractBytecode =
       compiledOutput.contracts['contract.sol'][name].evm.bytecode.object;
     return contractBytecode;
