@@ -7,43 +7,49 @@ import path from 'path';
 
 @Injectable()
 export class ScService {
+
   async getErc20Template(dto: Erc20Dto) {
     const { name, symbol, totalSupply, owner, mintable, burnable } = dto;
-    const data = {
+    let data = {
       name: name,
       symbol: symbol,
       totalSupply: totalSupply,
-      owner : owner
+      owner : owner,
+      burn : '',
+      mint : ''
     };
-    let templatePath;
-    let sol_name;
-    if (mintable && burnable) {
-      templatePath = path.join(
-        __dirname,
-        'contracts',
-        'erc20mintburnable.template',
-      );
-      sol_name = 'ERC20MintBurnableTemplate';
-    } else if (mintable && !burnable) {
-      templatePath = path.join(
-        __dirname,
-        'contracts',
-        'erc20mintable.template',
-      );
-      sol_name = 'ERC20MintableTemplate';
-    } else if (!mintable && burnable) {
-      templatePath = path.join(
-        __dirname,
-        'contracts',
-        'erc20burnable.template',
-      );
-      sol_name = 'ERC20BurnableTemplate';
-    } else {
-      templatePath = path.join(__dirname, 'contracts', 'erc20.template');
-      sol_name = 'ERC20Template';
+    const burn:string = `
+    function burn(uint256 amount) public virtual {
+        _burn(_msgSender(), amount);
     }
+    `
+    const mint:string = `
+    function mint(address to, uint256 amount) public onlyOwner {
+        _mint(to, amount);
+    }
+    `
+    const templatePath = path.join(__dirname, 'contracts', 'erc20.template');
+    const sol_name = 'ERC20';
+    if (mintable && burnable) {
+        data = {
+            ...data,
+            burn : burn,
+            mint : mint
+        }
+    } else if (mintable && !burnable) {
+        data = {
+            ...data,
+            mint : mint
+        }
+    } else if (!mintable && burnable) {
+        data = {
+            ...data,
+            burn : burn,
+        }
+    } 
     const templateString = fs.readFileSync(templatePath).toString();
     const resultString = nunjucks.renderString(templateString, data);
+    console.log(resultString);
     return await this.compileContract(sol_name, resultString);
   }
 
@@ -61,6 +67,10 @@ export class ScService {
             '*': ['evm.bytecode'],
           },
         },
+        optimizer : {
+            enabled : true,
+            runs : 200,
+        }
       },
     };
     const compiled = await solc.compile(JSON.stringify(input), {
@@ -68,10 +78,10 @@ export class ScService {
     });
 
     const compiledOutput = JSON.parse(compiled);
-    console.log(compiledOutput)
+    console.log(compiledOutput);
     const contractBytecode =
       compiledOutput.contracts['contract.sol'][name].evm.bytecode.object;
-    return contractBytecode;
+    return `0x`+contractBytecode;
   }
 
   findImports = (path: string) => {
