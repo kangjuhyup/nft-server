@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthJwtModule } from './middleware/jwt/jwt.module';
+import { ScModule } from './sc/sc.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { AuthJwtModule } from './middleware/jwt/jwt.module';
     }),
     DatabaseModule,
     AuthJwtModule,
-    AuthModule, 
+    AuthModule,
+    ScModule, 
   ],
   controllers: [AppController],
   providers: [AppService],

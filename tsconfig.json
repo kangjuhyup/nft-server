@@ -23,9 +23,11 @@
     "paths" : {
       "@root/*" : ["./src/*"],
       "@auth/*" : ["./src/auth/*"],
-      "@database/*" : ["./src/database/*"]
+      "@database/*" : ["./src/database/*"],
+      "@sc/*" : ["./src/sc/*"],
+      "@contract/*" : ["./src/sc/contracts/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/sc/contracts/erc20.template"],
   "exclude": ["node_modules", "dist"]
 }
