@@ -8,11 +8,13 @@ import { ExistedUserException } from '@root/middleware/exception/custom/existedU
 import { SetInfoDto } from './dto/setInfo.dto';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ethers } from 'ethers';
+import { ethers, EtherSymbol } from 'ethers';
 import * as fs from 'fs';
 import path from 'path';
 import { setPath, uploadFileURL, uploadPath } from '@root/middleware/multer/multer.options';
 import { Response } from 'express';
+import { SignInDto } from './dto/signIn.dto';
+import { InvaildUserException } from '@root/middleware/exception/custom/invaildUser.exception';
 
 
 
@@ -28,7 +30,7 @@ export class AuthService {
 
     async getPolicy(dto:getPolicyDto) {
         const {address} = dto;
-        if(await this._isExisted(address)) throw new ExistedUserException();
+        if(await this._getUser(address)) throw new ExistedUserException();
         return {
             success : true, 
             policy : this.POLICY 
@@ -37,25 +39,27 @@ export class AuthService {
 
     async signUp(res:Response,dto:SignUpDto) {
         const {address, signature} = dto;
-        if(await this._isExisted(address)) throw new ExistedUserException();
+        if(await this._getUser(address)) throw new ExistedUserException();
         if(!this._checkSignature(address,signature)){throw new Error('invaild signature')};
         const uuid = uuidv4();
-        console.log(dto);
-        const jwt_access_token = this.jwtService.sign({address:dto.address,signature:dto.signature});
+        const jwt_access_token = this._getJwtToken(dto.address);
         const user = new UserInfo(
             uuid,
             address,
             jwt_access_token
         )
         await this.userRepository.upsert(user)
-        res.setHeader('Authorization','Bearer '+jwt_access_token).cookie('jwt',jwt_access_token,{
-            httpOnly : true,
-            maxAge : 24 * 60 * 60 * 1000
-        }).send({
-            success : true
-        })
     
-        return res;
+        return this._makeRes(res,jwt_access_token);
+    }
+
+    async signIn(res:Response, dto:SignInDto) {
+        const {address} = dto;
+        const user = await this._getUser(address);
+        if(!user) throw new InvaildUserException();
+        user.jwt_access_token = this._getJwtToken(dto.address);
+        await this.userRepository.upsert(user);
+        return this._makeRes(res,user.jwt_access_token);
     }
 
     async setInfo(file:Express.Multer.File,dto:SetInfoDto) {
@@ -68,14 +72,26 @@ export class AuthService {
         return uploadFileURL(path.join(uploadPath,address,fileName));
     }
 
-    async _isExisted(address:string) {
-        const check = await this.userRepository.findOne(address);
-        if(check) return true;
-        return false;
+    async _getUser(address:string) {
+        return await this.userRepository.findOne(address);
     }
 
     _checkSignature(address,signature) : boolean {
         if(address === ethers.verifyMessage(this.POLICY,signature)) return true;
         return false;
+    }
+
+    _getJwtToken(address) : string {
+        return this.jwtService.sign({address:address});
+    }
+
+    _makeRes(res:Response,jwt_access_token:string) {
+        res.setHeader('Authorization','Bearer '+jwt_access_token).cookie('jwt',jwt_access_token,{
+            httpOnly : true,
+            maxAge : 24 * 60 * 60 * 1000
+        }).send({
+            success : true
+        })
+        return res;
     }
 }

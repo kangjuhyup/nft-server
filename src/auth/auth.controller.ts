@@ -7,6 +7,7 @@ import { SetInfoDto } from './dto/setInfo.dto';
 import { multerDiskOptions } from '@root/middleware/multer/multer.options';
 import { JwtGuard } from '@root/middleware/jwt/jwt.guard';
 import { Response } from 'express';
+import { SignInDto } from './dto/signIn.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -27,6 +28,14 @@ export class AuthController {
         @Body() dto:SignUpDto
     ) {
         return this.authService.signUp(res,dto);
+    }
+
+    @Post('signIn')
+    async signIn(
+        @Res() res:Response,
+        @Body() dto:SignInDto
+    ) {
+        return this.authService.signIn(res,dto);
     }
 
     @Post('setInfo')

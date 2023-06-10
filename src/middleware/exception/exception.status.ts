@@ -14,6 +14,7 @@ const StatusCode = new Map([
     ['INVAILD_MANAGER',611],
     ['VERIFY_TOKEN',612],
     ['EXISTED_USER',613],
+    ['INVAILD_USER',614],
   ]);
   
   export default StatusCode;
