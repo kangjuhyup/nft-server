@@ -3,11 +3,16 @@ import { UserRepository } from '@root/database/user/user.repository';
 import { SignUpDto } from '@auth/dto/signUp.dto';
 import { UserInfo } from '@root/database/user/user.entity';
 import { getPolicyDto } from '@auth/dto/getPolicy.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ExistedUserException } from '@root/middleware/exception/custom/existedUser.exception';
+import { SetInfoDto } from './dto/setInfo.dto';
 
 import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
-import { JwtService } from '@nestjs/jwt';
-import { ExistedUserException } from '@root/middleware/exception/custom/existedUser.exception';
+import * as fs from 'fs';
+import path, { extname } from 'path';
+import { uploadFileURL } from '@root/middleware/multer/multer.options';
+
 
 
 @Injectable()
@@ -44,6 +49,12 @@ export class AuthService {
             success : true,
             user : await this.userRepository.upsert(user)
         }
+    }
+
+    async setInfo(file:any, dto:SetInfoDto) {
+        const {address} = dto;
+        const fileName = `${address}_${Date.now()}_${file.filename}`
+        return uploadFileURL(fileName);
     }
 
     async _isExisted(address:string) {
