@@ -1,10 +1,11 @@
-import { Bind, Body, Controller, Get, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Bind, Body, Controller, Get, Post, Query, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { AuthService } from '@auth/auth.service';
 import { SignUpDto } from '@auth/dto/signUp.dto';
 import { getPolicyDto } from './dto/getPolicy.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SetInfoDto } from './dto/setInfo.dto';
 import { multerDiskOptions } from '@root/middleware/multer/multer.options';
+import { JwtGuard } from '@root/middleware/jwt/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -29,8 +30,9 @@ export class AuthController {
     @Post('setInfo')
     @UseInterceptors(FileInterceptor('file', multerDiskOptions))
     @Bind(UploadedFile())
+    @UseGuards(JwtGuard)
     async setInfo(
-        file: any,
+        @UploadedFile() file : Express.Multer.File,
         @Body() dto:SetInfoDto
     ) {
         return this.authService.setInfo(file,dto);

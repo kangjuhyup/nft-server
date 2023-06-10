@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
 import * as fs from 'fs';
 import path, { extname } from 'path';
-import { uploadFileURL } from '@root/middleware/multer/multer.options';
+import { setPath, uploadFileURL, uploadPath } from '@root/middleware/multer/multer.options';
 
 
 
@@ -51,10 +51,13 @@ export class AuthService {
         }
     }
 
-    async setInfo(file:any, dto:SetInfoDto) {
-        const {address} = dto;
-        const fileName = `${address}_${Date.now()}_${file.filename}`
-        return uploadFileURL(fileName);
+    async setInfo(file:Express.Multer.File,dto:SetInfoDto) {
+        const { address, nickName} = dto;
+        setPath(uploadPath);
+        setPath(path.join(uploadPath,address));
+        const fileName = `profile_${Date.now()}`
+        fs.writeFileSync(path.join(uploadPath,address,fileName),JSON.stringify(file));
+        return uploadFileURL(path.join(uploadPath,address,fileName));
     }
 
     async _isExisted(address:string) {
