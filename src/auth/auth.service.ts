@@ -10,8 +10,9 @@ import { SetInfoDto } from './dto/setInfo.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { ethers } from 'ethers';
 import * as fs from 'fs';
-import path, { extname } from 'path';
+import path from 'path';
 import { setPath, uploadFileURL, uploadPath } from '@root/middleware/multer/multer.options';
+import { Response } from 'express';
 
 
 
@@ -34,21 +35,27 @@ export class AuthService {
         };
     }
 
-    async signUp(dto:SignUpDto) {
+    async signUp(res:Response,dto:SignUpDto) {
         const {address, signature} = dto;
         if(await this._isExisted(address)) throw new ExistedUserException();
         if(!this._checkSignature(address,signature)){throw new Error('invaild signature')};
         const uuid = uuidv4();
-        const jwt_access_token = this.jwtService.sign(dto);
+        console.log(dto);
+        const jwt_access_token = this.jwtService.sign({address:dto.address,signature:dto.signature});
         const user = new UserInfo(
             uuid,
             address,
             jwt_access_token
         )
-        return {
-            success : true,
-            user : await this.userRepository.upsert(user)
-        }
+        await this.userRepository.upsert(user)
+        res.setHeader('Authorization','Bearer '+jwt_access_token).cookie('jwt',jwt_access_token,{
+            httpOnly : true,
+            maxAge : 24 * 60 * 60 * 1000
+        }).send({
+            success : true
+        })
+    
+        return res;
     }
 
     async setInfo(file:Express.Multer.File,dto:SetInfoDto) {
@@ -57,6 +64,7 @@ export class AuthService {
         setPath(path.join(uploadPath,address));
         const fileName = `profile_${Date.now()}`
         fs.writeFileSync(path.join(uploadPath,address,fileName),JSON.stringify(file));
+        if(nickName) 
         return uploadFileURL(path.join(uploadPath,address,fileName));
     }
 
