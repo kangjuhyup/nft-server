@@ -14,8 +14,6 @@ export class UserInfo {
     @Column({nullable:true})
     profile : string;
 
-    @Column()
-    jwt_access_token : string;
 
     @Column({nullable:true})
     jwt_refresh_token : string;
@@ -23,7 +21,6 @@ export class UserInfo {
     constructor(
         _uuid : string,
         _address : string,
-        _jwt_access_token : string,
         _jwt_refresh_token? : string,
         _nick_name? : string,
         _profile? : string,

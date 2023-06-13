@@ -8,13 +8,14 @@ import { ExistedUserException } from '@root/middleware/exception/custom/existedU
 import { SetInfoDto } from './dto/setInfo.dto';
 
 import { v4 as uuidv4 } from 'uuid';
-import { ethers, EtherSymbol } from 'ethers';
+import { ethers } from 'ethers';
 import * as fs from 'fs';
 import path from 'path';
-import { setPath, uploadFileURL, uploadPath } from '@root/middleware/multer/multer.options';
+import { setPath, uploadPath } from '@root/middleware/multer/multer.options';
 import { Response } from 'express';
 import { SignInDto } from './dto/signIn.dto';
 import { InvaildUserException } from '@root/middleware/exception/custom/invaildUser.exception';
+import { GetInfoDto } from './dto/getInfo.dto';
 
 
 
@@ -57,32 +58,55 @@ export class AuthService {
         const {address} = dto;
         const user = await this._getUser(address);
         if(!user) throw new InvaildUserException();
-        user.jwt_access_token = this._getJwtToken(dto.address);
-        await this.userRepository.upsert(user);
-        return this._makeRes(res,user.jwt_access_token);
+        return {
+            success : true
+        }
     }
 
-    async setInfo(file:Express.Multer.File,dto:SetInfoDto) {
+    async setInfo(res:Response,file:Express.Multer.File,dto:SetInfoDto) {
         const { address, nickName} = dto;
-        setPath(uploadPath);
-        setPath(path.join(uploadPath,address));
-        const fileName = `profile_${Date.now()}`
-        fs.writeFileSync(path.join(uploadPath,address,fileName),JSON.stringify(file));
-        if(nickName) 
-        return uploadFileURL(path.join(uploadPath,address,fileName));
+        const user = await this._getUser(address);
+        if(!user) throw new InvaildUserException();
+        if(file) {
+            setPath(uploadPath);
+            setPath(path.join(uploadPath,address));
+            const fileName = `profile_${Date.now()}`
+            const filePath = path.join(uploadPath,address,fileName);
+            fs.writeFileSync(filePath,JSON.stringify(file));
+            user.profile = filePath;
+        }
+        if(nickName) user.nick_name = nickName;
+        this.userRepository.upsert(user);
+        return {
+            success : true,
+        }
+    }
+
+    async getInfo(dto:GetInfoDto) {
+        const { address } = dto;
+        const user = await this._getUser(address);
+        if(!user) throw new InvaildUserException();
+        return {
+            nickName : user.nick_name,
+            profile : fs.readFileSync(user.profile)
+        }
     }
 
     async _getUser(address:string) {
         return await this.userRepository.findOne(address);
     }
 
-    _checkSignature(address,signature) : boolean {
+    _checkSignature(address:string,signature:string) : boolean {
         if(address === ethers.verifyMessage(this.POLICY,signature)) return true;
         return false;
     }
 
-    _getJwtToken(address) : string {
+    _getJwtToken(address:string) : string {
         return this.jwtService.sign({address:address});
+    }
+
+    _refreshJwtToken(address:string) : string {
+        return this._getJwtToken(address)
     }
 
     _makeRes(res:Response,jwt_access_token:string) {
